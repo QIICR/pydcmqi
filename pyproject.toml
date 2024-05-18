@@ -30,12 +30,17 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+  "numpy >= 1.26.0",
+  "dcmqi >= 0.2.0",
+  "SimpleITK >= 2.3.0",
+]
 
 [project.optional-dependencies]
 test = [
   "pytest >=6",
   "pytest-cov >=3",
+  "idc-index >=0.5.2"
 ]
 dev = [
   "pytest >=6",
@@ -47,6 +52,9 @@ docs = [
   "sphinx_copybutton",
   "sphinx_autodoc_typehints",
   "furo>=2023.08.17",
+]
+segdb = [
+  "segdb >= 0.0.3",
 ]
 
 [project.urls]
