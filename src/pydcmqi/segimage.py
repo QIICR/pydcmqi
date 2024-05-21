@@ -23,13 +23,12 @@ def get_min_max_values(image: sitk.Image) -> Tuple[float, float]:
     return filter.GetMinimum(), filter.GetMaximum()
 
 
-def _path(path: Union[str, Path]) -> Path:
+def _path(path: str | Path) -> Path:
     if isinstance(path, str):
         return Path(path)
-    elif isinstance(path, Path):
+    if isinstance(path, Path):
         return path
-    else:
-        raise ValueError("Invalid path type.")
+    raise ValueError("Invalid path type.")
 
 
 # --==      class definitions       ==--
@@ -261,6 +260,13 @@ class SegmentData:
     def segmentAlgorithmType(self, segmentAlgorithmType: str) -> None:
         self._data["SegmentAlgorithmType"] = segmentAlgorithmType
 
+    def _triplet_setter(self, key: str, value: Union[Tuple[str, str, str], Triplet]):
+        if isinstance(value, tuple):
+            value = Triplet.fromTuple(value)
+        assert isinstance(value, Triplet)
+        self._data[key] = value.asdict()
+        
+
     @property
     def segmentedPropertyCategory(self) -> Triplet:
         return self._triplet_factory("SegmentedPropertyCategoryCodeSequence")
@@ -269,10 +275,7 @@ class SegmentData:
     def segmentedPropertyCategory(
         self, value: Union[Tuple[str, str, str], Triplet]
     ) -> None:
-        if isinstance(value, tuple):
-            value = Triplet.fromTuple(value)
-        assert isinstance(value, Triplet)
-        self._data["SegmentedPropertyCategoryCodeSequence"] = value.asdict()
+        self._triplet_setter("SegmentedPropertyCategoryCodeSequence", value)
 
     @property
     def segmentedPropertyType(self) -> Triplet:
@@ -282,10 +285,7 @@ class SegmentData:
     def segmentedPropertyType(
         self, value: Union[Tuple[str, str, str], Triplet]
     ) -> None:
-        if isinstance(value, tuple):
-            value = Triplet.fromTuple(value)
-        assert isinstance(value, Triplet)
-        self._data["SegmentedPropertyTypeCodeSequence"] = value.asdict()
+        self._triplet_setter("SegmentedPropertyTypeCodeSequence", value)
 
     @property
     def segmentedPropertyTypeModifier(self) -> Triplet:
@@ -295,10 +295,7 @@ class SegmentData:
     def segmentedPropertyTypeModifier(
         self, value: Union[Tuple[str, str, str], Triplet]
     ) -> None:
-        if isinstance(value, tuple):
-            value = Triplet.fromTuple(value)
-        assert isinstance(value, Triplet)
-        self._data["SegmentedPropertyTypeModifierCodeSequence"] = value.asdict()
+        self._triplet_setter("SegmentedPropertyTypeModifierCodeSequence", value)
 
     @property
     def hasSegmentedPropertyTypeModifier(self) -> bool:
@@ -310,10 +307,7 @@ class SegmentData:
 
     @anatomicRegion.setter
     def anatomicRegion(self, value: Union[Tuple[str, str, str], Triplet]) -> None:
-        if isinstance(value, tuple):
-            value = Triplet.fromTuple(value)
-        assert isinstance(value, Triplet)
-        self._data["AnatomicRegionSequence"] = value.asdict()
+        self._triplet_setter("AnatomicRegionSequence", value)
 
     @property
     def hasAnatomicRegion(self) -> bool:
@@ -327,10 +321,7 @@ class SegmentData:
     def anatomicRegionModifier(
         self, value: Union[Tuple[str, str, str], Triplet]
     ) -> None:
-        if isinstance(value, tuple):
-            value = Triplet.fromTuple(value)
-        assert isinstance(value, Triplet)
-        self._data["AnatomicRegionModifierSequence"] = value.asdict()
+        self._triplet_setter("AnatomicRegionModifierSequence", value)
 
     @property
     def hasAnatomicRegionModifier(self) -> bool:
