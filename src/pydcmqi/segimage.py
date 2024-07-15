@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import tempfile
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 import SimpleITK as sitk
@@ -17,7 +16,7 @@ from .types import SegImageDict, SegmentDict, TripletDict
 # --== helper and utility functions ==--
 
 
-def get_min_max_values(image: sitk.Image) -> Tuple[float, float]:
+def get_min_max_values(image: sitk.Image) -> tuple[float, float]:
     filter = sitk.MinimumMaximumImageFilter()
     filter.Execute(image)
     return filter.GetMinimum(), filter.GetMaximum()
@@ -28,7 +27,9 @@ def _path(path: str | Path) -> Path:
         return Path(path)
     if isinstance(path, Path):
         return path
-    raise ValueError("Invalid path type.")
+
+    msg = "Invalid path type."
+    raise ValueError(msg)
 
 
 # --==      class definitions       ==--
@@ -58,7 +59,7 @@ class Triplet:
         return Triplet(d["CodeMeaning"], d["CodeValue"], d["CodingSchemeDesignator"])
 
     @staticmethod
-    def fromTuple(t: Tuple[str, str, str]) -> Triplet:
+    def fromTuple(t: tuple[str, str, str]) -> Triplet:
         """
         Create a LabeledTriplet from a tuple.
 
@@ -183,9 +184,6 @@ class SegmentData:
             or Triplet.fromDict(data["AnatomicRegionModifierSequence"]).valid,
         ]
 
-        print("required_fields", required_fields)
-        print("optional_fields", optional_fields)
-
         return all(required_fields) and all(optional_fields)
 
     def getConfigData(self, bypass_validation: bool = False) -> dict:
@@ -194,8 +192,7 @@ class SegmentData:
 
     @property
     def data(self) -> SegmentDict:
-        d = self._bake_data()
-        return d
+        return self._bake_data()
 
     def __getitem__(self, key: str) -> Any:
         return self._data[key]
@@ -229,11 +226,11 @@ class SegmentData:
         self._data["SegmentDescription"] = description
 
     @property
-    def rgb(self) -> Tuple[int]:
+    def rgb(self) -> tuple[int, int, int]:
         return tuple(self._data["recommendedDisplayRGBValue"])
 
     @rgb.setter
-    def rgb(self, rgb: Tuple[int]) -> None:
+    def rgb(self, rgb: tuple[int, int, int]) -> None:
         self._data["recommendedDisplayRGBValue"] = list(rgb)
 
     @property
@@ -260,7 +257,7 @@ class SegmentData:
     def segmentAlgorithmType(self, segmentAlgorithmType: str) -> None:
         self._data["SegmentAlgorithmType"] = segmentAlgorithmType
 
-    def _triplet_setter(self, key: str, value: Union[Tuple[str, str, str], Triplet]):
+    def _triplet_setter(self, key: str, value: tuple[str, str, str] | Triplet):
         if isinstance(value, tuple):
             value = Triplet.fromTuple(value)
         assert isinstance(value, Triplet)
@@ -271,9 +268,7 @@ class SegmentData:
         return self._triplet_factory("SegmentedPropertyCategoryCodeSequence")
 
     @segmentedPropertyCategory.setter
-    def segmentedPropertyCategory(
-        self, value: Union[Tuple[str, str, str], Triplet]
-    ) -> None:
+    def segmentedPropertyCategory(self, value: tuple[str, str, str] | Triplet) -> None:
         self._triplet_setter("SegmentedPropertyCategoryCodeSequence", value)
 
     @property
@@ -281,9 +276,7 @@ class SegmentData:
         return self._triplet_factory("SegmentedPropertyTypeCodeSequence")
 
     @segmentedPropertyType.setter
-    def segmentedPropertyType(
-        self, value: Union[Tuple[str, str, str], Triplet]
-    ) -> None:
+    def segmentedPropertyType(self, value: tuple[str, str, str] | Triplet) -> None:
         self._triplet_setter("SegmentedPropertyTypeCodeSequence", value)
 
     @property
@@ -292,7 +285,7 @@ class SegmentData:
 
     @segmentedPropertyTypeModifier.setter
     def segmentedPropertyTypeModifier(
-        self, value: Union[Tuple[str, str, str], Triplet]
+        self, value: tuple[str, str, str] | Triplet
     ) -> None:
         self._triplet_setter("SegmentedPropertyTypeModifierCodeSequence", value)
 
@@ -305,7 +298,7 @@ class SegmentData:
         return self._triplet_factory("AnatomicRegionSequence")
 
     @anatomicRegion.setter
-    def anatomicRegion(self, value: Union[Tuple[str, str, str], Triplet]) -> None:
+    def anatomicRegion(self, value: tuple[str, str, str] | Triplet) -> None:
         self._triplet_setter("AnatomicRegionSequence", value)
 
     @property
@@ -317,9 +310,7 @@ class SegmentData:
         return self._triplet_factory("AnatomicRegionModifierSequence")
 
     @anatomicRegionModifier.setter
-    def anatomicRegionModifier(
-        self, value: Union[Tuple[str, str, str], Triplet]
-    ) -> None:
+    def anatomicRegionModifier(self, value: tuple[str, str, str] | Triplet) -> None:
         self._triplet_setter("AnatomicRegionModifierSequence", value)
 
     @property
@@ -329,11 +320,11 @@ class SegmentData:
 
 class Segment:
     def __init__(self) -> None:
-        self.path: Optional[Path] = None
+        self.path: Path | None = None
         self.data = SegmentData()
 
-        self._cached_itk: Optional[sitk.Image] = None
-        self._cached_numpy: Optional[np.ndarray] = None
+        self._cached_itk: sitk.Image | None = None
+        self._cached_numpy: np.ndarray | None = None
 
     @property
     def config(self) -> dict:
@@ -352,7 +343,7 @@ class Segment:
         self.data.labelID = labelID
 
     def setFile(
-        self, path: Union[str, Path], labelID: int, diable_sanity_check: bool = False
+        self, path: str | Path, labelID: int, diable_sanity_check: bool = False
     ) -> None:
         # make sure path is a Path object
         path = _path(path)
@@ -365,12 +356,10 @@ class Segment:
             if not path.is_file():
                 raise ValueError(f"Path is not a file: {path}")
 
-            # check file has as many labels as expected
-            try:
-                image = sitk.ReadImage(str(path))
-            except Exception:
-                raise ValueError(f"Could not read image: {path}")
+            # read image
+            image = sitk.ReadImage(str(path))
 
+            # check file has as many labels as expected
             if image.GetNumberOfComponentsPerPixel() != 1:
                 raise ValueError(
                     f"Image must have only one component per pixel: {path}"
@@ -414,8 +403,8 @@ class Segment:
     def isLabel(self, label: int) -> bool:
         return label in np.unique(self.numpy)
 
-    def isLabelSet(self, labels: List[int]) -> bool:
-        return all([self.isLabel(l) for l in labels])
+    def isLabelSet(self, labels: list[int]) -> bool:
+        return all(self.isLabel(label) for label in labels)
 
     def isLabelRange(self, start: int, end: int) -> bool:
         return self.isLabelSet(list(range(start, end + 1)))
@@ -424,7 +413,7 @@ class Segment:
     def binary(self) -> np.ndarray:
         return self.numpy == self.labelID
 
-    def saveAsBinary(self, path: Union[str, Path]) -> None:
+    def saveAsBinary(self, path: str | Path) -> None:
         # make sure path is a Path object
         path = _path(path)
 
@@ -523,15 +512,15 @@ class SegImageData:
 
 class SegImageFiles:
     def __init__(self) -> None:
-        self._dicomseg: Optional[Path] = None
-        self._config: Optional[Path] = None
+        self._dicomseg: Path | None = None
+        self._config: Path | None = None
 
     @property
-    def dicomseg(self) -> Optional[Path]:
+    def dicomseg(self) -> Path | None:
         return self._dicomseg
 
     @property
-    def config(self) -> Optional[Path]:
+    def config(self) -> Path | None:
         return self._config
 
 
@@ -543,7 +532,7 @@ class SegImage:
         cls.verbose = False
 
     def __init__(
-        self, verbose: Optional[bool] = None, tmp_dir: Optional[Union[Path, str]] = None
+        self, verbose: bool | None = None, tmp_dir: Path | str | None = None
     ) -> None:
         # set verbose
         if verbose is not None:
@@ -566,13 +555,13 @@ class SegImage:
         self.loaded = False
         self.files = SegImageFiles()
 
-        self._config: Optional[dict] = None
-        self._segments: List[Segment] = []
+        self._config: dict | None = None
+        self._segments: list[Segment] = []
 
     def load(
         self,
-        dicomseg_file: Union[Path, str],
-        output_dir: Optional[Union[Path, str]] = None,
+        dicomseg_file: Path | str,
+        output_dir: Path | str | None = None,
     ) -> bool:
         print(f"Converting file: {dicomseg_file} into {output_dir}.")
 
@@ -621,7 +610,7 @@ class SegImage:
         config_file = output_dir / "pydcmqi-meta.json"
 
         # load the config file
-        with open(config_file) as f:
+        with Path.open(config_file) as f:
             self._config = json.load(f)
 
         # load data
@@ -631,7 +620,7 @@ class SegImage:
         # load each segmentation as item
         for i, s in enumerate(self._config["segmentAttributes"]):
             # find generated export file
-            f = os.path.join(output_dir, f"pydcmqi-{i+1}.nii.gz")
+            f = output_dir / f"pydcmqi-{i+1}.nii.gz"
 
             # load all configs from segment definition
             for config in s:
@@ -650,9 +639,9 @@ class SegImage:
 
     def write(
         self,
-        output_file: Union[str, Path],
-        dicom_dir: Union[str, Path],
-        export_config_to_file: Optional[Union[str, Path]] = None,
+        output_file: str | Path,
+        dicom_dir: str | Path,
+        export_config_to_file: str | Path | None = None,
         allow_overwrite: bool = False,
     ) -> None:
         # make sure the output file is a Path object
@@ -693,7 +682,7 @@ class SegImage:
 
         # store in _debug_test_meta.json
         meta_tmp_file = Path(self.tmp_dir) / "_debug_test_meta.json"
-        with open(meta_tmp_file, "w") as f:
+        with Path.open(meta_tmp_file, "w") as f:
             json.dump(config, f, indent=2)
 
         # export config file if requested
@@ -733,7 +722,7 @@ class SegImage:
                 raise ValueError(f"Segment {s} has no file specified.")
 
         # sort segments by files
-        f2s: Dict[str, List[Segment]] = {}
+        f2s: dict[str, list[Segment]] = {}
         for s in self._segments:
             p = str(s.path)
             if p not in f2s:
@@ -743,7 +732,7 @@ class SegImage:
         # sort the segments by their labelID
         f2s = {k: sorted(v, key=lambda x: x.labelID) for k, v in f2s.items()}
 
-        # order the dicionary by it's keys
+        # order the dictionary by it's keys
         of2s = OrderedDict(sorted(f2s.items()))
 
         # check that for all files
@@ -765,15 +754,15 @@ class SegImage:
         return config
 
     @property
-    def segmentation_files(self) -> List[Path]:
-        return sorted(set([s.path for s in self._segments]))
+    def segmentation_files(self) -> list[Path]:
+        return sorted({s.path for s in self._segments})
 
     @config.setter
     def config(self, config: SegImageDict) -> None:
         self.data.setConfigData(config)
 
     @property
-    def segments(self) -> List[Segment]:
+    def segments(self) -> list[Segment]:
         return self._segments
 
     def add_segment(self, segment: Segment) -> None:

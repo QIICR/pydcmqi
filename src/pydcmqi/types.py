@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TypedDict
+from typing import TypedDict
 
 
 class TripletDict(TypedDict):
@@ -15,7 +15,7 @@ class SegmentDict(TypedDict):
     SegmentDescription: str
     SegmentAlgorithmName: str
     SegmentAlgorithmType: str
-    recommendedDisplayRGBValue: List[int]
+    recommendedDisplayRGBValue: list[int]
     SegmentedPropertyCategoryCodeSequence: TripletDict
     SegmentedPropertyTypeCodeSequence: TripletDict
 
@@ -29,4 +29,4 @@ class SegImageDict(TypedDict):
     InstanceNumber: str
     SeriesDescription: str
     SeriesNumber: str
-    segmentAttributes: List[List[SegmentDict]]
+    segmentAttributes: list[list[SegmentDict]]

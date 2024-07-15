@@ -9,7 +9,7 @@ from idc_index import index
 
 from pydcmqi.segimage import SegImage, SegmentData, Triplet
 
-TEST_DIR = Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data"))
+TEST_DIR = Path(__file__).resolve().parent / "test_data"
 
 # force loading of the segmentation data
 # NOTE: only set to false to speed up manual testing.
@@ -22,10 +22,9 @@ FORCE_LOADING = True
 def _iterative_dict_sort(d):
     if isinstance(d, list):
         return [_iterative_dict_sort(v) for v in d]
-    elif isinstance(d, dict):
+    if isinstance(d, dict):
         return {k: _iterative_dict_sort(v) for k, v in sorted(d.items())}
-    else:
-        return d
+    return d
 
 
 class TestTriplets:
@@ -36,7 +35,7 @@ class TestTriplets:
         assert t.label == "Liver"
         assert t.code == "123037004"
         assert t.scheme == "SCT"
-        assert t.valid == True
+        assert t.valid
 
     def test_triplet_from_dict(self):
         d = {
@@ -49,7 +48,7 @@ class TestTriplets:
         assert t.label == "Anatomical Structure"
         assert t.code == "123037004"
         assert t.scheme == "SCT"
-        assert t.valid == True
+        assert t.valid
 
     def test_triplet_initializer(self):
         t = Triplet("Anatomical Structure", "123037004", "SCT")
@@ -57,7 +56,7 @@ class TestTriplets:
         assert t.label == "Anatomical Structure"
         assert t.code == "123037004"
         assert t.scheme == "SCT"
-        assert t.valid == True
+        assert t.valid
 
     def test_empty_triplet(self):
         t = Triplet.empty()
@@ -65,7 +64,7 @@ class TestTriplets:
         assert t.label == ""
         assert t.code == ""
         assert t.scheme == ""
-        assert t.valid == False
+        assert not t.valid
 
 
 class TestSegmentData:
@@ -124,8 +123,8 @@ class TestSegImageClass:
         segimg = SegImage()
 
         # verbose mode is disabled by default
-        assert SegImage.verbose == False
-        assert segimg.verbose == False
+        assert not SegImage.verbose
+        assert not segimg.verbose
 
     def test_verbosity_default_global_override(self):
         # set globally to true
@@ -136,17 +135,17 @@ class TestSegImageClass:
         segimg2 = SegImage(verbose=False)
 
         #
-        assert SegImage.verbose == True
-        assert segimg1.verbose == True
-        assert segimg2.verbose == False
+        assert SegImage.verbose
+        assert segimg1.verbose
+        assert not segimg2.verbose
 
     def test_verbosity_instance_override(self):
         # initialize
         segimg = SegImage(verbose=True)
 
         #
-        assert SegImage.verbose == False
-        assert segimg.verbose == True
+        assert not SegImage.verbose
+        assert segimg.verbose
 
     ### tmp_dir
     def test_tmp_dir(self):
@@ -157,10 +156,10 @@ class TestSegImageClass:
         segimg4 = SegImage(tmp_dir=Path("tmp"))
 
         # all instances will have a temp dir set
-        assert segimg1.tmp_dir != None
-        assert segimg2.tmp_dir != None
-        assert segimg3.tmp_dir != None
-        assert segimg4.tmp_dir != None
+        assert segimg1.tmp_dir is not None
+        assert segimg2.tmp_dir is not None
+        assert segimg3.tmp_dir is not None
+        assert segimg4.tmp_dir is not None
 
         # the type of the tmp_dir is Path, no matter how it was initilaized
         assert isinstance(segimg1.tmp_dir, Path)
@@ -220,7 +219,7 @@ class TestSegimageRead:
         # check download and assign files
         sf = [f for f in os.listdir(self.seg_dir) if f.endswith(".dcm")]
         assert len(sf) == 1
-        self.seg_file = os.path.join(self.seg_dir, sf[0])
+        self.seg_file = self.seg_dir / sf[0]
 
     def setup_method(self):
         # rezet segimage
@@ -236,17 +235,17 @@ class TestSegimageRead:
                 self.segimg.load(self.seg_file, output_dir=self.out_dir)
 
     def test_loading(self):
-        assert self.segimg.loaded == True
+        assert self.segimg.loaded
 
         # files
-        assert self.segimg.files.config != None
+        assert self.segimg.files.config is not None
         assert self.segimg.files.config == self.out_dir / "pydcmqi-meta.json"
-        assert self.segimg.files.dicomseg != None
+        assert self.segimg.files.dicomseg is not None
         assert self.segimg.files.dicomseg == self.seg_file
 
         # config
-        assert self.segimg._config != None
-        assert self.segimg.getExportedConfiguration() != None
+        assert self.segimg._config is not None
+        assert self.segimg.getExportedConfiguration() is not None
 
     def test_loaded_segment_content(self):
         # check
@@ -470,7 +469,7 @@ class TestSegimageWrite:
         # check download and assign files
         sf = [f for f in os.listdir(self.seg_dir) if f.endswith(".dcm")]
         assert len(sf) == 1
-        self.seg_file = os.path.join(self.seg_dir, sf[0])
+        self.seg_file = self.seg_dir / sf[0]
 
         # get the segmentation files
         self.dseg_config_file = self.out_dir / "pydcmqi-meta.json"
@@ -489,7 +488,7 @@ class TestSegimageWrite:
         # NOTE: this test is not yet dynamic and only works with the specified dicomseg file.
 
         # load original config
-        with open(self.dseg_config_file) as f:
+        with Path.open(self.dseg_config_file) as f:
             config = json.load(f)
 
         # initialize a SegImage instance used in multiple tests
