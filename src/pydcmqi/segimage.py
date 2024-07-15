@@ -265,7 +265,6 @@ class SegmentData:
             value = Triplet.fromTuple(value)
         assert isinstance(value, Triplet)
         self._data[key] = value.asdict()
-        
 
     @property
     def segmentedPropertyCategory(self) -> Triplet:
@@ -539,9 +538,9 @@ class SegImageFiles:
 class SegImage:
     verbose: bool = False
 
-    @staticmethod
-    def reset() -> None:
-        SegImage.verbose = False
+    @classmethod
+    def reset(cls) -> None:
+        cls.verbose = False
 
     def __init__(
         self, verbose: Optional[bool] = None, tmp_dir: Optional[Union[Path, str]] = None
@@ -631,16 +630,17 @@ class SegImage:
 
         # load each segmentation as item
         for i, s in enumerate(self._config["segmentAttributes"]):
-            assert len(s) == 1
-            config = s[0]
-            labeID = int(config["labelID"])
-
+            # find generated export file
             f = os.path.join(output_dir, f"pydcmqi-{i+1}.nii.gz")
 
-            # create new segment
-            segment = self.new_segment()
-            segment.setFile(f, labeID, disable_file_sanity_checks)
-            segment.config = config
+            # load all configs from segment definition
+            for config in s:
+                labeID = int(config["labelID"])
+
+                # create new segment
+                segment = self.new_segment()
+                segment.setFile(f, labeID, disable_file_sanity_checks)
+                segment.config = config
 
         # update state
         self.loaded = True
