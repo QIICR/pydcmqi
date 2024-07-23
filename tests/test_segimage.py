@@ -168,7 +168,10 @@ class TestSegImageClass:
         assert isinstance(segimg4.tmp_dir, Path)
 
         # specifying a tmp_dir with e.g. a numeric type will raise an ValueError
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Invalid tmp_dir, must be either None for default, a Path or a string.",
+        ):
             _ = SegImage(tmp_dir=1)
 
 

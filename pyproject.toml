@@ -139,7 +139,9 @@ extend-select = [
 ignore = [
   "PLR09",    # Too many <...>
   "PLR2004",  # Magic value used in comparison
-  "ISC001",   # Conflicts with formatter
+  "ISC001",   # Conflicts with formatter,
+  "EM101",    # Exception must not use a string literal, assign to variable first
+  "EM102",    # Exception must not use an f-string literal, assign to variable first
 ]
 isort.required-imports = ["from __future__ import annotations"]
 # Uncomment if using a _compat.typing backport
@@ -162,4 +164,5 @@ messages_control.disable = [
   "missing-module-docstring",
   "missing-function-docstring",
   "wrong-import-position",
+  "C0103",                        # Attribute name doesn't conform to snake_case naming style
 ]

@@ -17,9 +17,9 @@ from .types import SegImageDict, SegmentDict, TripletDict
 
 
 def get_min_max_values(image: sitk.Image) -> tuple[float, float]:
-    filter = sitk.MinimumMaximumImageFilter()
-    filter.Execute(image)
-    return filter.GetMinimum(), filter.GetMaximum()
+    sitk_filter = sitk.MinimumMaximumImageFilter()
+    sitk_filter.Execute(image)
+    return sitk_filter.GetMinimum(), sitk_filter.GetMaximum()
 
 
 def _path(path: str | Path) -> Path:
@@ -122,7 +122,24 @@ class SegmentData:
     """
 
     def __init__(self) -> None:
-        self._data: SegmentDict = {}
+        self._data: SegmentDict = {
+            "labelID": 0,
+            "SegmentLabel": "",
+            "SegmentDescription": "",
+            "SegmentAlgorithmName": "",
+            "SegmentAlgorithmType": "",
+            "recommendedDisplayRGBValue": [0, 0, 0],
+            "SegmentedPropertyCategoryCodeSequence": {
+                "CodeMeaning": "",
+                "CodeValue": "",
+                "CodingSchemeDesignator": "",
+            },
+            "SegmentedPropertyTypeCodeSequence": {
+                "CodeMeaning": "",
+                "CodeValue": "",
+                "CodingSchemeDesignator": "",
+            },
+        }
 
     def setConfigData(self, config: dict) -> None:
         self._data = config.copy()
@@ -319,6 +336,10 @@ class SegmentData:
 
 
 class Segment:
+    """
+    A class to store and manipulate the data for a segmentation or region of interest.
+    """
+
     def __init__(self) -> None:
         self.path: Path | None = None
         self.data = SegmentData()
@@ -426,6 +447,10 @@ class Segment:
 
 
 class SegImageData:
+    """
+    A class to store and manipulate the data for a segmentation or region of interest.
+    """
+
     def __init__(self) -> None:
         self._data: SegImageDict = {}
 
@@ -511,6 +536,10 @@ class SegImageData:
 
 
 class SegImageFiles:
+    """
+    A class to store and manipulate the file paths for a segmentation or region of interest.
+    """
+
     def __init__(self) -> None:
         self._dicomseg: Path | None = None
         self._config: Path | None = None
@@ -525,6 +554,10 @@ class SegImageFiles:
 
 
 class SegImage:
+    """
+    A class to store and manipulate the data for a segmentation or region of interest.
+    """
+
     verbose: bool = False
 
     @classmethod
@@ -563,7 +596,7 @@ class SegImage:
         dicomseg_file: Path | str,
         output_dir: Path | str | None = None,
     ) -> bool:
-        print(f"Converting file: {dicomseg_file} into {output_dir}.")
+        # print(f"Converting file: {dicomseg_file} into {output_dir}.") # TODO: use logging
 
         # we create a temporary output directory if none is provided in the specified tmp dir
         if output_dir is None:
@@ -594,7 +627,7 @@ class SegImage:
         self._import(output_dir)
 
         # update file paths
-        self.files._dicomseg = dicomseg_file
+        self.files._dicomseg = dicomseg_file  # pylint: disable=W0212
 
     def _import(
         self, output_dir: Path, disable_file_sanity_checks: bool = False
@@ -610,7 +643,7 @@ class SegImage:
         config_file = output_dir / "pydcmqi-meta.json"
 
         # load the config file
-        with Path.open(config_file) as f:
+        with Path.open(config_file, encoding="utf-8") as f:
             self._config = json.load(f)
 
         # load data
@@ -635,7 +668,7 @@ class SegImage:
         self.loaded = True
 
         # store file paths
-        self.files._config = config_file
+        self.files._config = config_file  # pylint: disable=W0212
 
     def write(
         self,
@@ -678,11 +711,11 @@ class SegImage:
 
         # store in the output directory
         # but for now just print
-        print(json.dumps(config, indent=2))
+        # print(json.dumps(config, indent=2)) # TODO: use logging
 
         # store in _debug_test_meta.json
         meta_tmp_file = Path(self.tmp_dir) / "_debug_test_meta.json"
-        with Path.open(meta_tmp_file, "w") as f:
+        with Path.open(meta_tmp_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
 
         # export config file if requested
