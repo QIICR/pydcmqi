@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 from pathlib import Path
@@ -7,7 +5,7 @@ from pathlib import Path
 import pytest
 from idc_index import index
 
-from pydcmqi.segimage import SegImage, SegmentData, Triplet
+from pydcmqi import DcmqiError, SegImage, SegmentData, Triplet
 
 TEST_DIR = Path(__file__).resolve().parent / "test_data"
 
@@ -551,3 +549,39 @@ class TestSegimageWrite:
 
         # check the file was created
         assert output_file.exists()
+
+
+class TestErrorPaths:
+    def test_get_exported_config_before_load(self):
+        segimg = SegImage()
+        with pytest.raises(RuntimeError, match="No data loaded"):
+            segimg.getExportedConfiguration()
+
+    def test_triplet_from_code_duck_typing(self):
+        class FakeCode:
+            value = "10200004"
+            scheme_designator = "SCT"
+            meaning = "Liver"
+
+        t = Triplet.from_code(FakeCode())
+        assert t.label == "Liver"
+        assert t.code == "10200004"
+        assert t.scheme == "SCT"
+        assert t.valid
+
+    def test_triplet_setter_rejects_invalid_type(self):
+        from pydcmqi import SegmentData
+
+        d = SegmentData()
+        with pytest.raises(TypeError, match="Expected Triplet, tuple, or Code-like"):
+            d.segmentedPropertyCategory = 42
+
+    def test_segment_data_validation_error(self):
+        d = SegmentData()
+        with pytest.raises(ValueError, match="failed validation"):
+            d.getConfigData()
+
+    def test_dcmqi_error_repr(self):
+        err = DcmqiError(["segimage2itkimage"], 1, "ERROR: file not found\n")
+        assert "segimage2itkimage failed (exit code 1)" in str(err)
+        assert "file not found" in str(err)
