@@ -179,4 +179,6 @@ messages_control.disable = [
   "missing-function-docstring",
   "wrong-import-position",
   "C0103",                        # Attribute name doesn't conform to snake_case naming style
+  "C0415",                        # import-outside-toplevel (used for optional deps)
+  "E0401",                        # import-error (optional deps like pydicom)
 ]

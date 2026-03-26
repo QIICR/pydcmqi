@@ -9,7 +9,7 @@ pydcmqi — Python API wrapper for dcmqi (DICOM quantitative imaging) CLI tools.
 - Python 3.10+
 - Uses `hatchling` + `hatch-vcs` for build/versioning
 - Install for development: `.venv/bin/pip install -e ".[test]"`
-- Pre-commit hooks configured (ruff, mypy, prettier, codespell, etc.)
+- Pre-commit hooks configured (ruff, mypy, pylint, prettier, codespell, etc.)
 
 ## Before committing
 
@@ -34,7 +34,7 @@ to download DICOM data from IDC.
 ## Linting
 
 ```bash
-.venv/bin/pre-commit run --all-files   # all hooks including mypy
+.venv/bin/pre-commit run --all-files   # all hooks including mypy and pylint
 .venv/bin/ruff check src/ tests/       # ruff only
 .venv/bin/mypy src/ tests/             # mypy only
 ```
