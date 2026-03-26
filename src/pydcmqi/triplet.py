@@ -96,7 +96,9 @@ class Triplet:
         """
         Convert to a pydicom Code. Requires pydicom to be installed.
         """
-        from pydicom.sr.coding import Code
+        from pydicom.sr.coding import (
+            Code,  # pylint: disable=import-error,import-outside-toplevel
+        )
 
         return Code(self.code, self.scheme, self.label)
 
