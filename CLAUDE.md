@@ -19,7 +19,8 @@ Always run pre-commit hooks before committing:
 .venv/bin/pre-commit run --all-files
 ```
 
-Fix any failures before creating the commit. Do not skip hooks with `--no-verify`.
+Fix any failures before creating the commit. Do not skip hooks with
+`--no-verify`.
 
 ## Testing
 
@@ -27,7 +28,8 @@ Fix any failures before creating the commit. Do not skip hooks with `--no-verify
 .venv/bin/pytest tests/
 ```
 
-Integration tests (TestSegimageRead, TestSegimageWrite) require network access to download DICOM data from IDC.
+Integration tests (TestSegimageRead, TestSegimageWrite) require network access
+to download DICOM data from IDC.
 
 ## Linting
 
