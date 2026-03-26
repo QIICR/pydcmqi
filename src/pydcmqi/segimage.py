@@ -369,18 +369,21 @@ class SegImage:
                 raise ValueError(f"Duplicate labelIDs found in {file_path}.")
 
         # add each segment to the config
-        config["segmentAttributes"] = [[s.config for s in ss] for ss in of2s.values()]
+        config["segmentAttributes"] = [
+            [s.config for s in ss]  # type: ignore[misc]
+            for ss in of2s.values()
+        ]
 
         # return the generated config
         return config
 
-    @property
-    def segmentation_files(self) -> list[Path]:
-        return sorted(s.path for s in self._segments if s.path is not None)
-
     @config.setter
     def config(self, config: SegImageDict) -> None:
         self.data.setConfigData(config)
+
+    @property
+    def segmentation_files(self) -> list[Path]:
+        return sorted(s.path for s in self._segments if s.path is not None)
 
     @property
     def segments(self) -> list[Segment]:

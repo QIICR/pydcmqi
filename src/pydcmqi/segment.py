@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import SimpleITK as sitk
@@ -120,11 +120,11 @@ class SegmentData:
             else:
                 t = Triplet.empty()
             setattr(self, f"__tpf_{key}", t)
-        return getattr(self, f"__tpf_{key}")
+        return cast(Triplet, getattr(self, f"__tpf_{key}"))
 
     @property
     def label(self) -> str:
-        return self._data["SegmentLabel"]
+        return cast(str, self._data["SegmentLabel"])
 
     @label.setter
     def label(self, label: str) -> None:
@@ -132,7 +132,7 @@ class SegmentData:
 
     @property
     def description(self) -> str:
-        return self._data["SegmentDescription"]
+        return cast(str, self._data["SegmentDescription"])
 
     @description.setter
     def description(self, description: str) -> None:
@@ -148,7 +148,7 @@ class SegmentData:
 
     @property
     def labelID(self) -> int:
-        return self._data["labelID"]
+        return cast(int, self._data["labelID"])
 
     @labelID.setter
     def labelID(self, labelID: int) -> None:
@@ -156,7 +156,7 @@ class SegmentData:
 
     @property
     def segmentAlgorithmName(self) -> str:
-        return self._data["SegmentAlgorithmName"]
+        return cast(str, self._data["SegmentAlgorithmName"])
 
     @segmentAlgorithmName.setter
     def segmentAlgorithmName(self, segmentAlgorithmName: str) -> None:
@@ -164,13 +164,15 @@ class SegmentData:
 
     @property
     def segmentAlgorithmType(self) -> str:
-        return self._data["SegmentAlgorithmType"]
+        return cast(str, self._data["SegmentAlgorithmType"])
 
     @segmentAlgorithmType.setter
     def segmentAlgorithmType(self, segmentAlgorithmType: str) -> None:
         self._data["SegmentAlgorithmType"] = segmentAlgorithmType
 
-    def _triplet_setter(self, key: str, value: tuple[str, str, str] | Triplet) -> None:
+    def _triplet_setter(
+        self, key: str, value: tuple[str, str, str] | Triplet | Any
+    ) -> None:
         if isinstance(value, Triplet):
             pass
         elif isinstance(value, tuple):
@@ -343,7 +345,8 @@ class Segment:
 
     @property
     def binary(self) -> np.ndarray:
-        return self.numpy == self.labelID
+        result: np.ndarray = self.numpy == self.labelID
+        return result
 
     def saveAsBinary(self, path: str | Path) -> None:
         # make sure path is a Path object

@@ -106,6 +106,25 @@ module = "pydcmqi.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
+[[tool.mypy.overrides]]
+module = [
+  "numpy",
+  "numpy.*",
+  "SimpleITK",
+  "SimpleITK.*",
+  "pydicom.*",
+  "idc_index.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+  "pydcmqi.segment",
+  "test_segimage",
+]
+disallow_untyped_calls = false
+warn_unused_ignores = false
+
 
 [tool.ruff]
 src = ["src"]

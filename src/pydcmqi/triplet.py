@@ -9,10 +9,7 @@ from .types import TripletDict
 def _path(path: str | Path) -> Path:
     if isinstance(path, Path):
         return path
-    if isinstance(path, str):
-        return Path(path)
-    msg = "Invalid path type."
-    raise ValueError(msg)
+    return Path(path)
 
 
 class Triplet:
