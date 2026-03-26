@@ -12,14 +12,7 @@ def test_public_api():
     from pydcmqi import (
         DcmqiError,
         SegImage,
-        SegImageData,
-        SegImageFiles,
-        Segment,
-        SegmentData,
         Triplet,
-        SegImageDict,
-        SegmentDict,
-        TripletDict,
     )
 
     # Verify they are the right types

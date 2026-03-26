@@ -15,9 +15,9 @@
 
 `pydcmqi` is a Python API wrapper for the
 [QIICR/dcmqi](https://github.com/QIICR/dcmqi) library and command line tool
-collection for standardized communication of [quantitative image
-analysis](http://journals.sagepub.com/doi/pdf/10.1177/0962280214537333) research
-data using the [DICOM standard](https://en.wikipedia.org/wiki/DICOM).
+collection for standardized communication of
+[quantitative image analysis](http://journals.sagepub.com/doi/pdf/10.1177/0962280214537333)
+research data using the [DICOM standard](https://en.wikipedia.org/wiki/DICOM).
 
 This package is in its early development stages. Its functionality and API will
 change. Please share feedback by opening issues in this repository.

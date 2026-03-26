@@ -6,8 +6,8 @@ pydcmqi: Python api wrapper and utilities for the dcmqi binary.
 
 from ._version import version as __version__
 from .exceptions import DcmqiError
-from .segment import Segment, SegmentData
 from .segimage import SegImage, SegImageData, SegImageFiles
+from .segment import Segment, SegmentData
 from .triplet import Triplet
 from .types import SegImageDict, SegmentDict, TripletDict
 

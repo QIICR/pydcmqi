@@ -7,11 +7,10 @@ from .types import TripletDict
 
 
 def _path(path: str | Path) -> Path:
-    if isinstance(path, str):
-        return Path(path)
     if isinstance(path, Path):
         return path
-
+    if isinstance(path, str):
+        return Path(path)
     msg = "Invalid path type."
     raise ValueError(msg)
 
@@ -101,6 +100,7 @@ class Triplet:
         Convert to a pydicom Code. Requires pydicom to be installed.
         """
         from pydicom.sr.coding import Code
+
         return Code(self.code, self.scheme, self.label)
 
     @property

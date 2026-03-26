@@ -5,7 +5,6 @@ import numpy as np
 import SimpleITK as sitk
 
 from .triplet import Triplet, _path
-from .types import SegmentDict
 
 
 def get_min_max_values(image: sitk.Image) -> tuple[float, float]:
@@ -20,7 +19,7 @@ class SegmentData:
     """
 
     def __init__(self) -> None:
-        self._data: SegmentDict = {
+        self._data: dict[str, Any] = {
             "labelID": 0,
             "SegmentLabel": "",
             "SegmentDescription": "",
@@ -39,10 +38,10 @@ class SegmentData:
             },
         }
 
-    def setConfigData(self, config: dict) -> None:
+    def setConfigData(self, config: dict[str, Any]) -> None:
         self._data = config.copy()
 
-    def _bake_data(self) -> SegmentDict:
+    def _bake_data(self) -> dict[str, Any]:
         # start from internal data
         d = self._data.copy()
 
@@ -72,7 +71,7 @@ class SegmentData:
         return d
 
     @staticmethod
-    def validate(data: dict) -> bool:
+    def validate(data: dict[str, Any]) -> bool:
         required_fields = [
             "labelID" in data,
             "SegmentLabel" in data,
@@ -99,13 +98,13 @@ class SegmentData:
 
         return all(required_fields) and all(optional_fields)
 
-    def getConfigData(self, bypass_validation: bool = False) -> dict:
+    def getConfigData(self, bypass_validation: bool = False) -> dict[str, Any]:
         if not bypass_validation and not self.validate(self.data):
             raise ValueError("Segment data failed validation.")
         return self.data.copy()
 
     @property
-    def data(self) -> SegmentDict:
+    def data(self) -> dict[str, Any]:
         return self._bake_data()
 
     def __getitem__(self, key: str) -> Any:
@@ -140,7 +139,7 @@ class SegmentData:
         self._data["SegmentDescription"] = description
 
     @property
-    def rgb(self) -> tuple[int, int, int]:
+    def rgb(self) -> tuple[int, ...]:
         return tuple(self._data["recommendedDisplayRGBValue"])
 
     @rgb.setter
@@ -176,10 +175,16 @@ class SegmentData:
             pass
         elif isinstance(value, tuple):
             value = Triplet.fromTuple(value)
-        elif hasattr(value, "value") and hasattr(value, "scheme_designator") and hasattr(value, "meaning"):
+        elif (
+            hasattr(value, "value")
+            and hasattr(value, "scheme_designator")
+            and hasattr(value, "meaning")
+        ):
             value = Triplet.from_code(value)
         else:
-            raise TypeError(f"Expected Triplet, tuple, or Code-like object, got {type(value)}")
+            raise TypeError(
+                f"Expected Triplet, tuple, or Code-like object, got {type(value)}"
+            )
         self._data[key] = value.asdict()
 
     @property
@@ -248,11 +253,11 @@ class Segment:
         self._cached_numpy: np.ndarray | None = None
 
     @property
-    def config(self) -> dict:
+    def config(self) -> dict[str, Any]:
         return self.data.getConfigData()
 
     @config.setter
-    def config(self, config: dict) -> None:
+    def config(self, config: dict[str, Any]) -> None:
         self.data.setConfigData(config)
 
     @property
@@ -289,9 +294,13 @@ class Segment:
             # get min/max values
             min_val, max_val = get_min_max_values(image)
             if min_val != 0.0:
-                raise ValueError(f"Image minimum value must be 0, got {min_val}: {path}")
+                raise ValueError(
+                    f"Image minimum value must be 0, got {min_val}: {path}"
+                )
             if max_val < labelID:
-                raise ValueError(f"Image max value ({max_val}) is less than labelID ({labelID}): {path}")
+                raise ValueError(
+                    f"Image max value ({max_val}) is less than labelID ({labelID}): {path}"
+                )
 
         # set path and label id
         self.path = path

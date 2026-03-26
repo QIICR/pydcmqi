@@ -5,20 +5,25 @@ import subprocess
 import tempfile
 from collections import OrderedDict
 from pathlib import Path
+from typing import Any
 
 from .exceptions import DcmqiError
-from .segment import Segment, SegmentData
-from .triplet import Triplet, _path
+from .segment import Segment
+from .triplet import _path
 from .types import SegImageDict
 
 logger = logging.getLogger(__name__)
 
 
-def _run_dcmqi(cmd: list[str], *, verbose: bool = False) -> subprocess.CompletedProcess[str]:
+def _run_dcmqi(
+    cmd: list[str], *, verbose: bool = False
+) -> subprocess.CompletedProcess[str]:
     """Run a dcmqi CLI command with proper error handling."""
     tool = cmd[0]
     if shutil.which(tool) is None:
-        raise RuntimeError(f"dcmqi tool '{tool}' not found. Install dcmqi: pip install dcmqi")
+        raise RuntimeError(
+            f"dcmqi tool '{tool}' not found. Install dcmqi: pip install dcmqi"
+        )
 
     logger.info("Running: %s", " ".join(cmd))
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -169,7 +174,7 @@ class SegImage:
         self.loaded = False
         self.files = SegImageFiles()
 
-        self._config: dict | None = None
+        self._config: dict[str, Any] | None = None
         self._segments: list[Segment] = []
 
     def load(
@@ -212,7 +217,7 @@ class SegImage:
         self._import(output_dir)
 
         # update file paths
-        self.files._dicomseg = dicomseg_file  # pylint: disable=W0212
+        self.files._dicomseg = _path(dicomseg_file)  # pylint: disable=W0212
 
     def _import(
         self, output_dir: Path, disable_file_sanity_checks: bool = False
@@ -228,21 +233,22 @@ class SegImage:
             self._config = json.load(f)
 
         # load data
-        self.data.setConfigData(self._config)
+        assert self._config is not None
+        self.data.setConfigData(self._config)  # type: ignore[arg-type]
 
         # load each segmentation as item
-        for i, s in enumerate(self._config["segmentAttributes"]):
+        for i, seg_attrs in enumerate(self._config["segmentAttributes"]):
             # find generated export file
-            f = output_dir / f"pydcmqi-{i+1}.nii.gz"
+            seg_file = output_dir / f"pydcmqi-{i+1}.nii.gz"
 
             # load all configs from segment definition
-            for config in s:
-                labeID = int(config["labelID"])
+            for seg_config in seg_attrs:
+                label_id = int(seg_config["labelID"])
 
                 # create new segment
                 segment = self.new_segment()
-                segment.setFile(f, labeID, disable_file_sanity_checks)
-                segment.config = config
+                segment.setFile(seg_file, label_id, disable_file_sanity_checks)
+                segment.config = seg_config
 
         # update state
         self.loaded = True
@@ -326,8 +332,8 @@ class SegImage:
         # run command
         _run_dcmqi(cmd, verbose=self.verbose)
 
-    def getExportedConfiguration(self) -> dict:
-        if not self.loaded:
+    def getExportedConfiguration(self) -> dict:  # type: ignore[type-arg]
+        if not self.loaded or self._config is None:
             raise RuntimeError("No data loaded. Call load() first.")
         return self._config
 
@@ -357,10 +363,10 @@ class SegImage:
         of2s = OrderedDict(sorted(f2s.items()))
 
         # check that for all files no duplicate labelIDs are present
-        for f, s in of2s.items():
-            labelIDs = [x.labelID for x in s]
+        for file_path, segs in of2s.items():
+            labelIDs = [x.labelID for x in segs]
             if len(labelIDs) != len(set(labelIDs)):
-                raise ValueError(f"Duplicate labelIDs found in {f}.")
+                raise ValueError(f"Duplicate labelIDs found in {file_path}.")
 
         # add each segment to the config
         config["segmentAttributes"] = [[s.config for s in ss] for ss in of2s.values()]
@@ -370,7 +376,7 @@ class SegImage:
 
     @property
     def segmentation_files(self) -> list[Path]:
-        return sorted({s.path for s in self._segments})
+        return sorted(s.path for s in self._segments if s.path is not None)
 
     @config.setter
     def config(self, config: SegImageDict) -> None:

@@ -6,6 +6,4 @@ class DcmqiError(RuntimeError):
         self.returncode = returncode
         self.stderr = stderr
         tool = cmd[0] if cmd else "dcmqi"
-        super().__init__(
-            f"{tool} failed (exit code {returncode}):\n{stderr.strip()}"
-        )
+        super().__init__(f"{tool} failed (exit code {returncode}):\n{stderr.strip()}")
