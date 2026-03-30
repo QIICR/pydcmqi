@@ -1,8 +1,9 @@
+import SimpleITK as sitk
+
 from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
-import SimpleITK as sitk
 
 from .triplet import Triplet, _path
 
