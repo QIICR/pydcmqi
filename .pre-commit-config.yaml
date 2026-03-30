@@ -54,6 +54,9 @@ repos:
         args: []
         additional_dependencies:
           - pytest
+          - numpy>=1.26.0
+          - SimpleITK>=2.3.0
+          - idc-index>=0.5.2
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.2.6"
