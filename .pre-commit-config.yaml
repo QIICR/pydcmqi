@@ -73,6 +73,15 @@ repos:
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
         exclude: .pre-commit-config.yaml
 
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: python
+        types: [python]
+        files: ^src/
+        require_serial: true
+        additional_dependencies: ["pylint", "numpy", "SimpleITK"]
+
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: "v0.16"
     hooks:

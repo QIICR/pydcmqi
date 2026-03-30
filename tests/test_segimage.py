@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 from pathlib import Path
@@ -7,7 +5,7 @@ from pathlib import Path
 import pytest
 from idc_index import index
 
-from pydcmqi.segimage import SegImage, SegmentData, Triplet
+from pydcmqi import DcmqiError, SegImage, SegmentData, Triplet, TripletDict
 
 TEST_DIR = Path(__file__).resolve().parent / "test_data"
 
@@ -19,7 +17,7 @@ FORCE_LOADING = True
 # helper function to sort dictionaries
 # ONLY FOR FILE EXPORT
 # DICTS ARE NOT PERSISTENTLY ORDERED IN PYTHON
-def _iterative_dict_sort(d):
+def _iterative_dict_sort(d: object) -> object:
     if isinstance(d, list):
         return [_iterative_dict_sort(v) for v in d]
     if isinstance(d, dict):
@@ -38,7 +36,7 @@ class TestTriplets:
         assert t.valid
 
     def test_triplet_from_dict(self):
-        d = {
+        d: TripletDict = {
             "CodeMeaning": "Anatomical Structure",
             "CodeValue": "123037004",
             "CodingSchemeDesignator": "SCT",
@@ -70,7 +68,7 @@ class TestTriplets:
 class TestSegmentData:
     def test_triplet_property_from_tuple(self):
         d = SegmentData()
-        d.segmentedPropertyCategory = ("Anatomical Structure", "123037004", "SCT")
+        d.segmentedPropertyCategory = ("Anatomical Structure", "123037004", "SCT")  # type: ignore[assignment]
 
         assert isinstance(d.segmentedPropertyCategory, Triplet)
         assert d.segmentedPropertyCategory.label == "Anatomical Structure"
@@ -172,7 +170,7 @@ class TestSegImageClass:
             ValueError,
             match="Invalid tmp_dir, must be either None for default, a Path or a string.",
         ):
-            _ = SegImage(tmp_dir=1)
+            _ = SegImage(tmp_dir=1)  # type: ignore[arg-type]
 
 
 class TestSegimageRead:
@@ -191,7 +189,7 @@ class TestSegimageRead:
         self.out_dir.mkdir(parents=True, exist_ok=True)
 
         # initialize a SegImage instance used in multiple tests
-        self.segimg = SegImage(self.tmp_dir)
+        self.segimg = SegImage(tmp_dir=self.tmp_dir)
 
         # initialize idc index client
         client = index.IDCClient()
@@ -479,12 +477,13 @@ class TestSegimageWrite:
         self.lung_seg_file = self.out_dir / "pydcmqi-1.nii.gz"
         self.tumor_seg_file = self.out_dir / "pydcmqi-2.nii.gz"
 
-        # extract nifit files from segmentation if not already done
+        # extract nifti files from segmentation if not already done
         if (
             not self.dseg_config_file.exists()
             or not self.lung_seg_file.exists()
             or not self.tumor_seg_file.exists()
         ):
+            self.segimg = SegImage(tmp_dir=self.tmp_dir)
             self.segimg.load(self.seg_file, output_dir=self.out_dir)
 
     def test_write(self):
@@ -495,7 +494,7 @@ class TestSegimageWrite:
             config = json.load(f)
 
         # initialize a SegImage instance used in multiple tests
-        segimg = SegImage(self.tmp_dir)
+        segimg = SegImage(tmp_dir=self.tmp_dir)
 
         # specify segimg data
         segimg.data.bodyPartExamined = "LUNG"
@@ -515,13 +514,13 @@ class TestSegimageWrite:
         lung.data.labelID = 1
         lung.data.segmentAlgorithmName = "BAMF-Lung-FDG-PET-CT"
         lung.data.segmentAlgorithmType = "AUTOMATIC"
-        lung.data.segmentedPropertyCategory = (
+        lung.data.segmentedPropertyCategory = (  # type: ignore[assignment]
             "Anatomical Structure",
             "123037004",
             "SCT",
         )
-        lung.data.segmentedPropertyType = ("Lung", "39607008", "SCT")
-        lung.data.segmentedPropertyTypeModifier = ("Right and left", "51440002", "SCT")
+        lung.data.segmentedPropertyType = ("Lung", "39607008", "SCT")  # type: ignore[assignment]
+        lung.data.segmentedPropertyTypeModifier = ("Right and left", "51440002", "SCT")  # type: ignore[assignment]
 
         lung.setFile(self.lung_seg_file, labelID=1)
 
@@ -533,7 +532,7 @@ class TestSegimageWrite:
         tumor.data.labelID = 2
         tumor.data.segmentAlgorithmName = "BAMF-Lung-FDG-PET-CT"
         tumor.data.segmentAlgorithmType = "AUTOMATIC"
-        tumor.data.segmentedPropertyCategory = ("Radiologic Finding", "C35869", "NCIt")
+        tumor.data.segmentedPropertyCategory = ("Radiologic Finding", "C35869", "NCIt")  # type: ignore[assignment]
         tumor.data.segmentedPropertyType.label = "FDG-Avid Tumor"
         tumor.data.segmentedPropertyType.code = "C168968"
         tumor.data.segmentedPropertyType.scheme = "NCIt"
@@ -551,3 +550,39 @@ class TestSegimageWrite:
 
         # check the file was created
         assert output_file.exists()
+
+
+class TestErrorPaths:
+    def test_get_exported_config_before_load(self):
+        segimg = SegImage()
+        with pytest.raises(RuntimeError, match="No data loaded"):
+            segimg.getExportedConfiguration()
+
+    def test_triplet_from_code_duck_typing(self):
+        class FakeCode:
+            value = "10200004"
+            scheme_designator = "SCT"
+            meaning = "Liver"
+
+        t = Triplet.from_code(FakeCode())
+        assert t.label == "Liver"
+        assert t.code == "10200004"
+        assert t.scheme == "SCT"
+        assert t.valid
+
+    def test_triplet_setter_rejects_invalid_type(self):
+        from pydcmqi import SegmentData
+
+        d = SegmentData()
+        with pytest.raises(TypeError, match="Expected Triplet, tuple, or Code-like"):
+            d.segmentedPropertyCategory = 42  # type: ignore[assignment]
+
+    def test_segment_data_validation_error(self):
+        d = SegmentData()
+        with pytest.raises(ValueError, match="failed validation"):
+            d.getConfigData()
+
+    def test_dcmqi_error_repr(self):
+        err = DcmqiError(["segimage2itkimage"], 1, "ERROR: file not found\n")
+        assert "segimage2itkimage failed (exit code 1)" in str(err)
+        assert "file not found" in str(err)
