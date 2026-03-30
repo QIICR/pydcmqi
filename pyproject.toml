@@ -32,7 +32,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "numpy >= 1.26.0",
-  "dcmqi >= 0.2.0",
+  "dcmqi >= 0.3.0",
   "SimpleITK >= 2.3.0",
 ]
 
