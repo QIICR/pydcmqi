@@ -1,3 +1,5 @@
+# 👷 🚧 This package is in its early development stages. It is not yet ready for public use. 🚧
+
 # pydcmqi
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/QIICR/pydcmqi/main.svg)](https://results.pre-commit.ci/latest/github/QIICR/pydcmqi/main)
 
@@ -18,10 +20,6 @@
 collection for standardized communication of [quantitative image
 analysis(http://journals.sagepub.com/doi/pdf/10.1177/0962280214537333)] research
 data using [DICOM standard(https://en.wikipedia.org/wiki/DICOM)].
-
-👷 🚧 This package is in its early development stages. Its functionality and API
-will change. Stay tuned for the updates and documentation, and please share your
-feedback about it by opening issues in this repository. 🚧
 
 <!-- prettier-ignore-start -->
 [actions-badge]:            https://github.com/ImagingDataCommons/pydcmqi/workflows/CI/badge.svg
