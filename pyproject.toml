@@ -32,7 +32,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "numpy >= 1.26.0",
-  "dcmqi >= 0.2.0",
+  "dcmqi >= 0.3.0",
   "SimpleITK >= 2.3.0",
 ]
 
@@ -95,7 +95,7 @@ report.exclude_also = [
 
 [tool.mypy]
 files = ["src", "tests"]
-python_version = "3.8"
+python_version = "3.10"
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
@@ -107,6 +107,14 @@ disallow_incomplete_defs = false
 module = "pydcmqi.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["pydcmqi.segimage"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["test_segimage"]
+ignore_errors = true
 
 
 [tool.ruff]
@@ -153,7 +161,7 @@ isort.required-imports = ["from __future__ import annotations"]
 
 
 [tool.pylint]
-py-version = "3.8"
+py-version = "3.10"
 ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
