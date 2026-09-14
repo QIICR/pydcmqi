@@ -653,7 +653,7 @@ class SegImage:
         # load each segmentation as item
         for i, s in enumerate(self._config["segmentAttributes"]):
             # find generated export file
-            f = output_dir / f"pydcmqi-{i+1}.nii.gz"
+            f = output_dir / f"pydcmqi-{i + 1}.nii.gz"
 
             # load all configs from segment definition
             for config in s:
