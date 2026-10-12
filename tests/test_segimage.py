@@ -134,7 +134,6 @@ class TestSegImageClass:
         segimg1 = SegImage()
         segimg2 = SegImage(verbose=False)
 
-        #
         assert SegImage.verbose
         assert segimg1.verbose
         assert not segimg2.verbose
@@ -143,7 +142,6 @@ class TestSegImageClass:
         # initialize
         segimg = SegImage(verbose=True)
 
-        #
         assert not SegImage.verbose
         assert segimg.verbose
 
